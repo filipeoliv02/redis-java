@@ -1,9 +1,15 @@
-This is a starting point for Java solutions to the
-["Build Your Own Redis" Challenge](https://codecrafters.io/challenges/redis).
+A lightweight Redis-compatible server written in Java.
 
-In this challenge, you'll build a toy Redis clone that's capable of handling
-basic commands like `PING`, `SET` and `GET`. Along the way we'll learn about
-event loops, the Redis protocol and more.
+Features
+- RESP protocol parsing and serialization
+- Core commands: PING, ECHO, SET, GET, KEYS, TYPE, CONFIG GET, INFO
+- Optional key expiry with PX
+- Basic master/replica handshake support
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+Testing
+1. Install Maven (Java 8 compatible)
+2. Run `mvn test`
+
+Running
+- Build and run with `./spawn_redis_server.sh`
+- Optional flags: `--port`, `--dir`, `--dbfilename`, `--replicaof <host> <port>`
