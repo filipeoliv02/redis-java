@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RespReader {
+    public static final int MAX_LINE_LENGTH = 64 * 1024;
+    public static final int MAX_BULK_LENGTH = 16 * 1024 * 1024;
+    public static final int MAX_ARRAY_LENGTH = 1024;
+
     private final PushbackInputStream input;
 
     public RespReader(InputStream input) {
@@ -55,6 +59,9 @@ public class RespReader {
         if (length == -1) {
             return RespValue.nullBulkString();
         }
+        if (length > MAX_BULK_LENGTH) {
+            throw new IOException("RESP bulk string exceeds maximum length");
+        }
         byte[] data = readBytes(length);
         readExpectedCrlf();
         return RespValue.bulkString(new String(data, StandardCharsets.UTF_8));
@@ -64,6 +71,9 @@ public class RespReader {
         int count = parseInt(readLine());
         if (count == -1) {
             return RespValue.array(null);
+        }
+        if (count < -1 || count > MAX_ARRAY_LENGTH) {
+            throw new IOException("RESP array exceeds maximum length");
         }
         List<RespValue> values = new ArrayList<RespValue>(count);
         for (int i = 0; i < count; i++) {
@@ -101,11 +111,17 @@ public class RespReader {
                 continue;
             }
             buffer.write(b);
+            if (buffer.size() > MAX_LINE_LENGTH) {
+                throw new IOException("RESP line exceeds maximum length");
+            }
         }
         return buffer.toString(StandardCharsets.UTF_8.name());
     }
 
     private byte[] readBytes(int length) throws IOException {
+        if (length < 0 || length > MAX_BULK_LENGTH) {
+            throw new IOException("RESP bulk string exceeds maximum length");
+        }
         byte[] data = new byte[length];
         int offset = 0;
         while (offset < length) {

@@ -45,6 +45,30 @@ public class RespProtocolTest {
     }
 
     @Test
+    public void rejectsOversizedBulkLength() throws IOException {
+        String input = "$" + (RespReader.MAX_BULK_LENGTH + 1) + "\r\n";
+        RespReader reader = new RespReader(new ByteArrayInputStream(input.getBytes("UTF-8")));
+        try {
+            reader.readValue();
+            org.junit.Assert.fail("Expected oversized bulk string to be rejected");
+        } catch (IOException expected) {
+            assertEquals("RESP bulk string exceeds maximum length", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void rejectsOversizedArray() throws IOException {
+        String input = "*" + (RespReader.MAX_ARRAY_LENGTH + 1) + "\r\n";
+        RespReader reader = new RespReader(new ByteArrayInputStream(input.getBytes("UTF-8")));
+        try {
+            reader.readValue();
+            org.junit.Assert.fail("Expected oversized array to be rejected");
+        } catch (IOException expected) {
+            assertEquals("RESP array exceeds maximum length", expected.getMessage());
+        }
+    }
+
+    @Test
     public void roundTripArray() throws IOException {
         List<RespValue> values = Arrays.asList(
                 RespValue.bulkString("PING"),
